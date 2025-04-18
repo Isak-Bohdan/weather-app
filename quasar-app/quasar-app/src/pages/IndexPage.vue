@@ -64,7 +64,7 @@
             alt="Weather Icon"
           />
         </div>
-         <!-- Кнопка для повернення на головний екран -->
+        <!-- Кнопка для повернення на головний екран -->
         <q-btn
           class="q-mt-md text-white"
           :class="backButtonClass"
@@ -93,10 +93,11 @@
 </template>
 
 <script setup>
+import { Platform } from 'quasar'
 import { translations } from "src/router/localization";
 import { ref, onMounted, computed } from "vue";
 import axios from "axios";
-import { Notify } from "quasar"; // Імпортуємо плагін Notify
+import { Loading, Notify } from "quasar"; // Імпортуємо плагін Notify
 
 const toggleLanguage = (newLang) => {
   language.value = newLang;
@@ -146,37 +147,52 @@ const getWeatherByCoords = async () => {
     }
   }
 };
-
+//Error був через місспелінг platform, треба було писати з великої  
 const getLocation = async () => {
-  if (navigator.geolocation) {
-    try {
-      // Отримання координат користувача
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          lat.value = position.coords.latitude;
-          lon.value = position.coords.longitude;
-          await getWeatherByCoords(); // Отримуємо погоду за координатами
-        },
-        (error) => {
-          Notify.create({
-            color: "negative",
-            position: "top",
-            message: t.value.locationError || "Unable to retrieve location",
-            icon: "warning",
-          });
-        }
-      );
-    } catch (error) {
-      console.error("Error getting location:", error);
-    }
+  if (Platform.is.cordova) {
+    // ...
+  } else if (Platform.is.electron) {
+
+    axios.get('https://api.ipbase.com/v1/json/').then(response =>
+      {
+        lat.value = response.data.latitude;
+        lon.value = response.data.longitude;
+        getWeatherByCoords();
+      }
+    )
+
   } else {
-    Notify.create({
-      color: "negative",
-      position: "top",
-      message:
-        t.value.locationError || "Geolocation is not supported by this browser",
-      icon: "warning",
-    });
+    if (navigator.geolocation) {
+      try {
+        // Отримання координат користувача
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            lat.value = position.coords.latitude;
+            lon.value = position.coords.longitude;
+            await getWeatherByCoords(); // Отримуємо погоду за координатами
+          },
+          (error) => {
+            Notify.create({
+              color: "negative",
+              position: "top",
+              message: t.value.locationError || "Unable to retrieve location",
+              icon: "warning",
+            });
+          }
+        );
+      } catch (error) {
+        console.error("Error getting location:", error);
+      }
+    } else {
+      Notify.create({
+        color: "negative",
+        position: "top",
+        message:
+          t.value.locationError ||
+          "Geolocation is not supported by this browser",
+        icon: "warning",
+      });
+    }
   }
 };
 
