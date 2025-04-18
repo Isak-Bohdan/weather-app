@@ -8,7 +8,8 @@ export const translations = {
       search: "Search",
       cloudiness: "Cloudiness",
       humidity: "Humidity",
-      cityNotFound: 'City not found'
+      cityNotFound: 'City not found',
+      backToHome: 'Back to Home Page'
     },
     uk: {
       searchPlaceholder: "Пошук міста...",
@@ -19,6 +20,7 @@ export const translations = {
       search: "Пошук",
       cloudiness: "Хмарність",
       humidity: "Вологість",
-      cityNotFound: 'Місто не знайдено'
+      cityNotFound: 'Місто не знайдено',
+      backToHome: 'Повернутися на головну сторінку'
     }
   };

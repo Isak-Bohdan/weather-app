@@ -1,5 +1,9 @@
 <template>
-  <q-page class="flex column" :class="bgClass" :style="{ filter: backgroundFilter }">
+  <q-page
+    class="flex column"
+    :class="bgClass"
+    :style="{ filter: backgroundFilter }"
+  >
     <div class="col q-pt-lg q-px-md">
       <!-- Кнопка-перемикач мов -->
       <q-btn-toggle
@@ -13,7 +17,7 @@
         text-color="primary"
         :options="[
           { label: 'EN', value: 'en' },
-          { label: 'УКР', value: 'uk' }
+          { label: 'УКР', value: 'uk' },
         ]"
         @update:model-value="toggleLanguage"
       />
@@ -28,7 +32,13 @@
           <q-icon name="my_location" @click="getLocation" />
         </template>
         <template v-slot:append>
-          <q-btn round dense flat @click="getWeatherBySearch" :disabled="isLoading" />
+          <q-btn
+            round
+            dense
+            flat
+            @click="getWeatherBySearch"
+            :disabled="isLoading"
+          />
         </template>
       </q-input>
     </div>
@@ -36,7 +46,9 @@
     <!-- Виведення погоди -->
     <template v-if="weatherData">
       <div class="col text-center" :class="textColorClass">
-        <div class="text-h4 text-weight-light">{{ weatherData.city?.name }}</div>
+        <div class="text-h4 text-weight-light">
+          {{ weatherData.city?.name }}
+        </div>
         <div class="text-h6 text-weight-light">
           {{ t.cloudiness }}: {{ weatherData.list[0]?.clouds?.all || "0" }}%
         </div>
@@ -52,6 +64,14 @@
             alt="Weather Icon"
           />
         </div>
+         <!-- Кнопка для повернення на головний екран -->
+        <q-btn
+          class="q-mt-md text-white"
+          :class="backButtonClass"
+          icon="arrow_back"
+          :label="t.backToHome"
+          @click="resetToHome"
+        />
       </div>
     </template>
 
@@ -106,8 +126,12 @@ const localTime = computed(() => {
 });
 
 // Підготовка даних по вологісті та видимості
-const visibility = computed(() => weatherData.value?.list[0]?.visibility || "N/A");
-const humidity = computed(() => weatherData.value?.list[0]?.main?.humidity || "N/A");
+const visibility = computed(
+  () => weatherData.value?.list[0]?.visibility || "N/A"
+);
+const humidity = computed(
+  () => weatherData.value?.list[0]?.main?.humidity || "N/A"
+);
 
 const getWeatherByCoords = async () => {
   if (lat.value !== null && lon.value !== null) {
@@ -123,8 +147,6 @@ const getWeatherByCoords = async () => {
   }
 };
 
-
-
 const getLocation = async () => {
   if (navigator.geolocation) {
     try {
@@ -137,10 +159,10 @@ const getLocation = async () => {
         },
         (error) => {
           Notify.create({
-            color: 'negative',
-            position: 'top',
-            message: t.value.locationError || 'Unable to retrieve location',
-            icon: 'warning',
+            color: "negative",
+            position: "top",
+            message: t.value.locationError || "Unable to retrieve location",
+            icon: "warning",
           });
         }
       );
@@ -149,22 +171,19 @@ const getLocation = async () => {
     }
   } else {
     Notify.create({
-      color: 'negative',
-      position: 'top',
-      message: t.value.locationError || 'Geolocation is not supported by this browser',
-      icon: 'warning',
+      color: "negative",
+      position: "top",
+      message:
+        t.value.locationError || "Geolocation is not supported by this browser",
+      icon: "warning",
     });
   }
 };
 
-
-
-
-
 // Отримання погоди за пошуком
 const getWeatherBySearch = async () => {
   if (search.value.trim() !== "") {
-    isLoading.value = true;  // Початок завантаження
+    isLoading.value = true; // Початок завантаження
     try {
       const response = await axios.get(
         `${apiUrl}?q=${search.value}&appid=${apiKey}&units=metric`
@@ -175,20 +194,19 @@ const getWeatherBySearch = async () => {
       console.error("Error fetching weather data:", error);
       // Виведення повідомлення при помилці
       Notify.create({
-        color: 'negative',
-        position: 'top',
-        message: t.value.cityNotFound || 'City not found',
-        icon: 'warning'
+        color: "negative",
+        position: "top",
+        message: t.value.cityNotFound || "City not found",
+        icon: "warning",
       });
     } finally {
-      isLoading.value = false;  // Завершення завантаження
+      isLoading.value = false; // Завершення завантаження
     }
   } else {
     console.log("Please enter a city name");
-    isLoading.value = false;  // Завершення завантаження, якщо немає введеного міста
+    isLoading.value = false; // Завершення завантаження, якщо немає введеного міста
   }
 };
-
 
 // Стилі для фону
 const bgClass = computed(() => {
@@ -196,7 +214,9 @@ const bgClass = computed(() => {
     const sunrise = weatherData.value.city.sunrise * 1000;
     const sunset = weatherData.value.city.sunset * 1000;
     const currentTime = Date.now();
-    return currentTime >= sunrise && currentTime <= sunset ? "bg-day" : "bg-night";
+    return currentTime >= sunrise && currentTime <= sunset
+      ? "bg-day"
+      : "bg-night";
   }
   return "q-page";
 });
@@ -220,9 +240,23 @@ const textColorClass = computed(() => {
   const timezoneOffset = weatherData.value.city.timezone;
   const utcTime = Date.now() + timezoneOffset * 1000;
   const hours = new Date(utcTime).getUTCHours();
-  return hours >= 0 && hours < 6 || hours >= 20 ? "text-blue" : "text-white";
+  return (hours >= 0 && hours < 6) || hours >= 20 ? "text-blue" : "text-white";
 });
 
-const isLoading = ref(false);  // Додано для контролю стану завантаження
+const isLoading = ref(false); // Додано для контролю стану завантаження
 
+// Метод для повернення
+const backButtonClass = computed(() => {
+  if (!weatherData.value) return "bg-primary text-white";
+  const now = Date.now();
+  const { sunrise, sunset } = weatherData.value.city;
+  return now >= sunrise * 1000 && now <= sunset * 1000
+    ? "bg-gradient-day text-white"
+    : "bg-gradient-night text-white";
+});
+
+const resetToHome = () => {
+  weatherData.value = null;
+  search.value = "";
+};
 </script>
