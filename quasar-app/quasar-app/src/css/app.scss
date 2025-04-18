@@ -1,0 +1,32 @@
+body {
+    overflow: hidden;
+    transition: background 0.5s ease-in-out;
+  }
+
+  .q-page {
+    background: linear-gradient(to bottom, #966493, #adabc9
+    ); /* Темно-блакитний для ясного неба */
+    font-family: 'Nunito', sans-serif;
+
+    &.bg-night {
+      background: linear-gradient(to bottom, #22096f, #966493      ); /* Темні відтінки для ночі */
+    }
+
+    &.bg-day {
+      background: linear-gradient(to bottom, #966493, #f0d07c); /* Темно-блакитний для похмурого дня */
+    }
+
+    .skyline {
+      height: 150px;
+      background-size: contain;
+      background-position: center bottom;
+      position: relative;
+    }
+    .text-h4, .text-h6, .text-h1, .text-subtitle1 {
+      font-weight: 400; /* Уніфікована товщина */}
+  }
+  .text-white {
+    transition: opacity 0.5s ease;
+    opacity: v-bind(backgroundOpacity);
+  }
+  
