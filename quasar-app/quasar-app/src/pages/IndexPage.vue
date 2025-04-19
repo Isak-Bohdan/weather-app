@@ -43,7 +43,7 @@
       </q-input>
     </div>
 
-    <!-- Виведення погоди -->
+    <!-- Вивід погоди -->
     <template v-if="weatherData">
       <div class="col text-center" :class="textColorClass">
         <div class="text-h4 text-weight-light">
@@ -60,7 +60,7 @@
         <div class="text-subtitle1">{{ t.humidity }}: {{ humidity }}%</div>
         <div class="col text-center">
           <img
-            :src="`http://openweathermap.org/img/wn/${weatherData.list[0]?.weather?.[0]?.icon}.png`"
+            :src="`https://openweathermap.org/img/wn/${weatherData.list[0]?.weather?.[0]?.icon}.png`"
             alt="Weather Icon"
           />
         </div>
@@ -75,7 +75,7 @@
       </div>
     </template>
 
-    <!-- Якщо погода не знайдена -->
+    <!-- Погода не знайдена -->
     <template v-else>
       <div class="col column text-center text-white">
         <div class="col text-h2 text-weight-thin">
@@ -93,11 +93,11 @@
 </template>
 
 <script setup>
-import { Platform } from 'quasar'
+import { Platform } from "quasar";
 import { translations } from "src/router/localization";
 import { ref, onMounted, computed } from "vue";
 import axios from "axios";
-import { Loading, Notify } from "quasar"; // Імпортуємо плагін Notify
+import { Loading, Notify } from "quasar"; // плагін Notify
 
 const toggleLanguage = (newLang) => {
   language.value = newLang;
@@ -147,29 +147,25 @@ const getWeatherByCoords = async () => {
     }
   }
 };
-//Error був через місспелінг platform, треба було писати з великої  
+//Error був через місспелінг platform, треба було писати з великої
 const getLocation = async () => {
-  if (Platform.is.cordova) {
-    // ...
-  } else if (Platform.is.electron) {
-
-    axios.get('https://api.ipbase.com/v1/json/').then(response =>
-      {
-        lat.value = response.data.latitude;
-        lon.value = response.data.longitude;
-        getWeatherByCoords();
-      }
-    )
-
-  } else {
-    if (navigator.geolocation) {
-      try {
-        // Отримання координат користувача
+  Loading.show({
+    message: "Отримання місцезнаходження...",
+    spinnerColor: "primary",
+  });
+  try {
+    if (Platform.is.cordova || Platform.is.electron) {
+      const response = await axios.get("https://api.ipbase.com/v1/json/");
+      lat.value = response.data.latitude;
+      lon.value = response.data.longitude;
+      await getWeatherByCoords();
+    } else if (navigator.geolocation) {
+      await new Promise((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(
-          async (position) => {
+          (position) => {
             lat.value = position.coords.latitude;
             lon.value = position.coords.longitude;
-            await getWeatherByCoords(); // Отримуємо погоду за координатами
+            resolve();
           },
           (error) => {
             Notify.create({
@@ -178,11 +174,11 @@ const getLocation = async () => {
               message: t.value.locationError || "Unable to retrieve location",
               icon: "warning",
             });
+            reject(error);
           }
         );
-      } catch (error) {
-        console.error("Error getting location:", error);
-      }
+      });
+      await getWeatherByCoords();
     } else {
       Notify.create({
         color: "negative",
@@ -193,6 +189,10 @@ const getLocation = async () => {
         icon: "warning",
       });
     }
+  } catch (error) {
+    console.error("Location error:", error);
+  } finally {
+    Loading.hide();
   }
 };
 
